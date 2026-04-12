@@ -89,6 +89,8 @@ sapdev workspace push S4H/ZLEGACY            # push fix to SAP
 sapdev clean-core assess ZLEGACY              # re-assess to confirm
 ```
 
+See [Clean Core assessment and remediation](#clean-core-assessment-and-remediation) for the full command reference.
+
 ---
 
 ### 3. CI/CD Quality Gates - syntax, ATC, unit tests in your pipeline
@@ -263,14 +265,18 @@ They're complementary. Use abapGit when you need branch/merge operations managed
 | `workspace add` | - | Add new objects to the workspace |
 | `workspace remove` | - | Stop tracking objects |
 
-### Clean Core assessment
+### Clean Core assessment and remediation
 
 ```bash
-sapdev clean-core assess ZFINANCE           # ATC scan + level classification
-sapdev clean-core report S4H/ZFINANCE       # generate summary report
-sapdev clean-core executive                 # cross-package dashboard
-sapdev clean-core prep S4H/ZFINANCE         # download fix context for D/C objects
-sapdev clean-core apply S4H/ZFINANCE        # push fixes back to SAP
+sapdev clean-core assess ZPACKAGE           # discover + classify (A/B/C/D)
+sapdev clean-core prep S4H/ZPACKAGE         # download source + fix context for D/C objects
+# ... AI agent or human edits .clas.abap / .prog.abap files ...
+sapdev clean-core apply S4H/ZPACKAGE        # push fixes back to SAP (lock → write → activate)
+```
+
+```bash
+sapdev clean-core report S4H/ZPACKAGE       # regenerate summary report
+sapdev clean-core executive                 # cross-package executive dashboard
 ```
 
 ### Quality checks
