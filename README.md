@@ -254,19 +254,19 @@ done
 
 ```bash
 # Linux
-curl -LO https://github.com/openkash/adtctl-releases/raw/main/linux/adtctl
+curl -LO https://github.com/openkash/adtctl/raw/main/linux/adtctl
 chmod +x adtctl && sudo mv adtctl /usr/local/bin/
 
 # macOS (Apple Silicon — M1/M2/M3/M4)
-curl -LO https://github.com/openkash/adtctl-releases/raw/main/macos/adtctl
+curl -LO https://github.com/openkash/adtctl/raw/main/macos/adtctl
 chmod +x adtctl && sudo mv adtctl /usr/local/bin/
 
 # macOS (Intel)
-curl -LO https://github.com/openkash/adtctl-releases/raw/main/macos-x64/adtctl
+curl -LO https://github.com/openkash/adtctl/raw/main/macos-x64/adtctl
 chmod +x adtctl && sudo mv adtctl /usr/local/bin/
 
 # Windows (PowerShell)
-Invoke-WebRequest -Uri https://github.com/openkash/adtctl-releases/raw/main/windows/adtctl.exe -OutFile adtctl.exe
+Invoke-WebRequest -Uri https://github.com/openkash/adtctl/raw/main/windows/adtctl.exe -OutFile adtctl.exe
 ```
 
 Verify: `adtctl --version`
