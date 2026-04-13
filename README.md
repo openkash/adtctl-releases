@@ -220,7 +220,7 @@ done
 
 ```bash
 adtctl clean-core prep S4H/ZLEGACY
-cd adtctl/clean-core/S4H/ZLEGACY/fix-context
+cd clean-core/S4H/ZLEGACY/fix-context
 for file in *.clas.abap; do
   obj=$(basename $file .clas.abap | tr 'a-z' 'A-Z')
   git checkout -b "fix/${obj}"
@@ -478,9 +478,8 @@ adtctl package list -c prod
 {
   "defaults": {
     "connection": "dev",
-    "data_dir": "adtctl",
-    "source_dir": "abap",
-    "session_file": "adtctl/.session.json"
+    "workspace_dir": "abap",
+    "session_file": ".adtctl/.session.json"
   },
   "http": {
     "max_retries": 3,
