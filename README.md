@@ -28,7 +28,7 @@ Sync packages from SAP to local files. Edit in any editor. Use git for version c
 
 ```bash
 adtctl workspace init ZFINANCE                # sync package from SAP
-cd abap/ZFINANCE
+cd abap/S4H/ZFINANCE
 git init && git add -A && git commit -m "Initial sync"
 
 git checkout -b fix/exchange-rate              # branch for the fix
@@ -65,7 +65,7 @@ Run ATC with any variant - Clean Core, S/4HANA readiness, or custom. Classify ob
 
 ```bash
 adtctl workspace init ZLEGACY                 # sync package
-cd abap/ZLEGACY
+cd abap/S4H/ZLEGACY
 git init && git add -A && git commit -m "Initial sync"
 
 adtctl clean-core assess ZLEGACY              # Clean Core scan (levels A/B/C/D)
