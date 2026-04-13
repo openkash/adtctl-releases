@@ -248,7 +248,8 @@ done
 | Platform | Binary |
 |----------|--------|
 | **Linux** x64 | [adtctl](linux/adtctl) |
-| **macOS** x64 | [adtctl](macos/adtctl) |
+| **macOS** ARM64 (Apple Silicon) | [adtctl](macos/adtctl) |
+| **macOS** x64 (Intel) | [adtctl](macos-x64/adtctl) |
 | **Windows** x64 | [adtctl.exe](windows/adtctl.exe) |
 
 ```bash
@@ -256,8 +257,12 @@ done
 curl -LO https://github.com/openkash/adtctl-releases/raw/main/linux/adtctl
 chmod +x adtctl && sudo mv adtctl /usr/local/bin/
 
-# macOS
+# macOS (Apple Silicon — M1/M2/M3/M4)
 curl -LO https://github.com/openkash/adtctl-releases/raw/main/macos/adtctl
+chmod +x adtctl && sudo mv adtctl /usr/local/bin/
+
+# macOS (Intel)
+curl -LO https://github.com/openkash/adtctl-releases/raw/main/macos-x64/adtctl
 chmod +x adtctl && sudo mv adtctl /usr/local/bin/
 
 # Windows (PowerShell)
