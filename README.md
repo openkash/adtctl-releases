@@ -6,7 +6,20 @@ Sync code, run quality checks, manage transports, assess S/4HANA readiness, and 
 
 102 commands. Single binary. No runtime dependencies. Works with S/4HANA, ECC, and NetWeaver AS ABAP 7.50+. Requires ADT endpoints enabled.
 
+**Contents**
+- [What You Can Do](#what-you-can-do) — 6 use cases with examples
+- [Download](#download) — platform binaries + install
+- [Quick Start](#quick-start) — first 3 minutes + troubleshooting
+- [How This Compares to abapGit](#how-this-compares-to-abapgit)
+- [Detailed Feature Reference](#detailed-feature-reference) — per-command guide
+- [Configuration](#configuration) — `.adtctl.json` fields
+- [Global Options](#global-options) — flags on every command
+- [All Commands](#all-commands) — full catalog
+- New users: see **[GETTING-STARTED.md](GETTING-STARTED.md)** for a guided walkthrough.
+
 ## What You Can Do
+
+> **Placeholder convention:** `ZCL_YOUR_*`, `ZFINANCE`, `ZLEGACY`, `S4H`, and similar names in examples are placeholders — replace with real values from your system. Run `adtctl package list` to find a package you own.
 
 ### 1. ABAP Source in Git - branch, diff, review, push
 
@@ -32,11 +45,11 @@ cd abap/S4H/ZFINANCE
 git init && git add -A && git commit -m "Initial sync"
 
 git checkout -b fix/exchange-rate              # branch for the fix
-vim zcl_journal_entry.clas.abap               # edit in any editor
+vim zcl_your_class.clas.abap               # edit in any editor
 
 adtctl workspace diff S4H/ZFINANCE            # diff against SAP baseline
-adtctl check syntax ZCL_JOURNAL_ENTRY --source zcl_journal_entry.clas.abap
-adtctl check atc ZCL_JOURNAL_ENTRY            # validate before pushing
+adtctl check syntax ZCL_YOUR_CLASS --source zcl_your_class.clas.abap
+adtctl check atc ZCL_YOUR_CLASS            # validate before pushing
 
 git add -A && git commit -m "Fix exchange rate"
 git push origin fix/exchange-rate             # push branch for code review
@@ -69,15 +82,15 @@ cd abap/S4H/ZLEGACY
 git init && git add -A && git commit -m "Initial sync"
 
 adtctl clean-core assess ZLEGACY              # Clean Core scan (levels A/B/C/D)
-adtctl check atc ZCL_LEGACY_REPORT --variant YOUR_VARIANT  # or any ATC variant
+adtctl check atc ZCL_YOUR_REPORT --variant YOUR_VARIANT  # or any ATC variant
 
 adtctl clean-core prep S4H/ZLEGACY            # download fix context for D/C objects
 
 git checkout -b fix/zcl-legacy-report         # branch per fix
-vim zcl_legacy_report.clas.abap               # replace deprecated API calls
+vim zcl_your_report.clas.abap               # replace deprecated API calls
 
-adtctl check syntax ZCL_LEGACY_REPORT --source zcl_legacy_report.clas.abap
-adtctl check atc ZCL_LEGACY_REPORT            # validate the fix
+adtctl check syntax ZCL_YOUR_REPORT --source zcl_your_report.clas.abap
+adtctl check atc ZCL_YOUR_REPORT            # validate the fix
 
 git add -A && git commit -m "Replace CALL FUNCTION with class-based API"
 git push origin fix/zcl-legacy-report         # code review via pull request
@@ -142,11 +155,11 @@ Connect to any SAP system and browse, search, read source, navigate definitions,
 ```bash
 adtctl package list                            # discover Z*/Y* packages
 adtctl object tree ZFINANCE                    # browse package contents
-adtctl source get ZCL_JOURNAL_ENTRY            # read source code
+adtctl source get ZCL_YOUR_CLASS            # read source code
 
-adtctl code definition ZCL_JOURNAL_ENTRY --line 42 --col 10   # go to definition
-adtctl code element-info ZCL_JOURNAL_ENTRY --line 42 --col 10  # type + docs
-adtctl code references ZCL_JOURNAL_ENTRY                       # who uses this?
+adtctl code definition ZCL_YOUR_CLASS --line 42 --col 10   # go to definition
+adtctl code element-info ZCL_YOUR_CLASS --line 42 --col 10  # type + docs
+adtctl code references ZCL_YOUR_CLASS                       # who uses this?
 
 adtctl data query BKPF --rows 5 --where "BUKRS = '1000'"      # preview data
 adtctl data sql --query "SELECT * FROM bkpf WHERE gjahr = '2025' UP TO 10 ROWS"
@@ -217,22 +230,6 @@ for obj in ZCL_JOURNAL ZCL_POSTING ZCL_APPROVAL; do
 done
 ```
 
-**Assembly-line refactoring** - one PR per object:
-
-```bash
-adtctl clean-core prep S4H/ZLEGACY
-cd clean-core/S4H/ZLEGACY/fix-context
-for file in *.abap; do
-  obj=$(basename "$file" | sed 's/\.[^.]*\.abap$//' | tr 'a-z' 'A-Z')
-  git checkout -b "fix/${obj}"
-  # fix findings using .context/ metadata
-  adtctl check syntax $obj --source "$file" --json    # validate
-  git add -A && git commit -m "Fix: $obj"
-  gh pr create --title "Clean core: $obj"
-  git checkout main
-done
-```
-
 **Dependency mapping** - build a graph of custom code:
 
 ```bash
@@ -272,19 +269,61 @@ chmod +x adtctl && sudo mv adtctl /usr/local/bin/
 Invoke-WebRequest -Uri https://github.com/openkash/adtctl/raw/main/windows/adtctl.exe -OutFile adtctl.exe
 ```
 
+**macOS only — clear quarantine:** the binary isn't yet code-signed, so Gatekeeper blocks it. One-time fix after install:
+
+```bash
+sudo xattr -d com.apple.quarantine /usr/local/bin/adtctl
+```
+
+Alternatively: right-click the binary in Finder → Open → confirm "Open anyway".
+
 Verify: `adtctl --version`
 
 ## Quick Start
 
+**First 3 minutes** — prove it works:
+
 ```bash
 adtctl init                          # create .adtctl.json template
-# Edit .adtctl.json with your SAP host, SID, client, username (see Configuration below)
+# Edit .adtctl.json with your SAP host, SID, client, username
 export ADTCTL_PASSWORD='your-password'
 
 adtctl system-check                  # verify connectivity + auth
-adtctl package list                  # confirm you can read
-adtctl object tree ZFINANCE          # confirm you can browse a package
+adtctl package list                  # lists Z*/Y* packages — your first real output
 ```
+
+**Next 5 minutes** — prove you can write:
+
+```bash
+# Browse a package (ZSFLIGHT is SAP's standard demo, available on most S/4 systems)
+adtctl object tree ZSFLIGHT
+
+# Pre-flight: confirm your user has lock/activate authorization on a sandbox object
+adtctl system-check ZCL_YOUR_SANDBOX_CLASS --write
+
+# Try a read-only sync
+adtctl workspace init ZYOUR_PACKAGE --dry-run
+```
+
+**Learn the tool:**
+
+```bash
+adtctl recipes                       # guided multi-step workflows
+adtctl discover                      # which ADT services does your system expose?
+adtctl tools                         # every command with safety annotations
+```
+
+### Exit codes (for scripts and CI)
+
+| Code | Meaning |
+|------|---------|
+| `0` | Success |
+| `1` | Partial failure — check found issues, some objects failed |
+| `2` | Error — bad config, auth failure, SAP error |
+
+### Batch writes
+
+Every write command prompts for confirmation. In scripts, pass `-y`/`--yes` to skip prompts, or `--dry-run` to preview without writing.
 
 ### Troubleshooting first-run failures
 
@@ -294,8 +333,10 @@ adtctl object tree ZFINANCE          # confirm you can browse a package
 | `404` on every command | ADT services not enabled on the system (ask Basis) |
 | `Certificate verification failed` | Self-signed cert — set `NODE_EXTRA_CA_CERTS=/path/to/ca.pem` |
 | `CSRF token required` loops | Stale session file — delete `.adtctl/.session.json` and retry |
+| `workspace init` hangs on huge package | Narrow it with `--filter`, `--type CLAS`, or `--depth 1` |
+| Workshop / shared system unstable | Lower concurrency: `workspace init --concurrency 1` |
 
-Run `adtctl discover` to see which ADT services a given system exposes.
+**New to adtctl? See [GETTING-STARTED.md](GETTING-STARTED.md) for a guided 20-minute walkthrough.**
 
 ---
 
@@ -324,6 +365,8 @@ They're complementary. Use abapGit when you need branch/merge operations managed
 ## Detailed Feature Reference
 
 ### Workspace sync (git-like commands)
+
+Workspace paths use `{SID}/{PACKAGE}` where SID is your SAP system's 3-letter ID (e.g. `S4H`, `DEV`) — this lets you work with multiple systems side by side without collision.
 
 | adtctl command | git equivalent | What it does |
 |----------------|---------------|--------------|
@@ -456,36 +499,30 @@ adtctl bdef create ZI_SALESORDER --package ZDEV --description "Sales BDEF"
 
 ## Configuration
 
-`adtctl init` creates a `.adtctl.json` template:
+Minimum working config — 4 fields:
 
 ```json
 {
   "connections": {
     "dev": {
       "host": "sap-dev.example.com",
-      "port": 44300,
       "sid": "DEV",
       "client": "100",
-      "secure": true,
-      "auth": "basic",
-      "username": "YOUR_USER",
-      "password_env": "ADTCTL_PASSWORD",
-      "language": "EN"
+      "username": "YOUR_USER"
     }
-  },
-  "defaults": {
-    "connection": "dev"
   }
 }
 ```
 
-Passwords are always read from environment variables, never stored in config:
+Password is always read from an environment variable — never stored in config:
 
 ```bash
 export ADTCTL_PASSWORD='your-password'
 ```
 
-Multiple connections - switch with `-c`:
+**Only `auth: basic` is implemented today.** The schema reserves `oauth` and `x509` for future use; both currently throw.
+
+Multiple connections — switch with `-c`:
 
 ```bash
 adtctl package list -c dev
@@ -495,7 +532,30 @@ adtctl package list -c prod
 **Resolution order:** CLI flags > `.adtctl.json` > built-in defaults.
 
 <details>
-<summary>Optional config sections</summary>
+<summary>Optional connection fields</summary>
+
+```json
+{
+  "connections": {
+    "dev": {
+      "host": "sap-dev.example.com",
+      "sid": "DEV",
+      "client": "100",
+      "username": "YOUR_USER",
+      "port": 44300,                     // default: 443 (secure) or 80
+      "secure": true,                    // default: true
+      "auth": "basic",                   // only 'basic' implemented today
+      "password_env": "ADTCTL_PASSWORD", // env var holding the password
+      "language": "EN"                   // default: EN
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary>Optional top-level sections</summary>
 
 ```json
 {
@@ -526,6 +586,8 @@ adtctl package list -c prod
 | `--session-file <path>` | Persist session across invocations |
 
 Common per-command flags: `-c, --connection <name>` (select SAP connection), `--dry-run` (preview without side effects, on write commands), `-y, --yes` (skip confirmation prompts, on destructive commands).
+
+**Don't commit `.adtctl/` to git.** It caches auth cookies and CSRF tokens. Add `.adtctl/` to your `.gitignore`.
 
 ## All Commands
 
